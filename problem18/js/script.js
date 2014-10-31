@@ -5,6 +5,8 @@ var done = false;
 
 function main(){
     var start = new Date().getTime();
+
+    var reader = new FileReader();
     textInput = document.getElementById("input").value;
 
     triangle = parse(textInput);
@@ -25,7 +27,33 @@ function parse(input){
     return temp2D;
 }
 
+function makeAdjMatTriangle(triangle2DArray) {
+
+}
 QUnit.test('parse()', function( assert ){
-    var testArray = [[1, 2, 3],[4, 5, 6]];
-    assert.deepEqual(parse("1 2 3\n4 5 6"), testArray, "Parse works!");
+    var testArray = [[59], [73, 41],[52, 40, 09]];
+    assert.deepEqual(parse("59\n73 41\n52 40 09"), testArray, "Parse worked for the first three lines of Euler 67's triangle.txt");
+});
+
+QUnit.test('makeAdjMatTriangle()', function( assert ){
+    var testArray = [[59], [73, 41],[52, 40, 09]];
+    /*  Adjacency List   
+           59  73  41  52  40  09
+        59  0  59  59   0   0   0
+        73  0   0   0  73  73   0
+        41  0   0   0   0  41  41
+        52  0   0   0   0   0   0
+        40  0   0   0   0   0   0
+        09  0   0   0   0   0   0
+    */
+    var correct = 
+    [
+        [0, 59, 59,  0,  0,  0] 
+        [0,  0,  0, 73, 73,  0] 
+        [0,  0,  0,  0, 41, 41]
+        [0,  0,  0,  0,  0,  0] 
+        [0,  0,  0,  0,  0,  0] 
+        [0,  0,  0,  0,  0,  0] 
+    ];
+    assert.deepEqual(makeAdjMatTriangle(testArray), correct, "makeAdjMatTriangle correctly makes an adjancency list for weighted digraph");
 });
