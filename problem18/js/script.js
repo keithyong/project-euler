@@ -39,17 +39,36 @@ function getNumNodes(array) {
     return count;
 }
 
+function getLeftChildIndex(nodeIndex){
+    return nodeIndex * 2 + 1;
+}
+
+function getRightChildIndex(nodeIndex){
+    return nodeIndex * 2 + 2;
+}
+
 function makeAdjMatTriangle(tri2DArray) {
     var rows = tri2DArray.length;
     var columns = tri2DArray[rows - 1].length;
-    var numNodes = rows - 1 + columns;
-    var adjmat;
+    var numNodes = getNumNodes(tri2DArray);
+    var adjmat = new Array(numNodes);
+    for (var i = 0; i < numNodes; i++)
+        adjmat[i] = new Array(numNodes);
+
+    for (var r = 0; r < numNodes; r++)
+        for (var c = 0; c < numNodes; c++)
+            adjmat[r][c] = 0;
+
     for (var r = 0; r < tri2DArray.length; r++){
         for (var c = 0; c < tri2DArray[r].length; c++){
+
         }
     }
+
+    return adjmat;
 }
 
+// ----- TESTS ------
 var testArray = [
             [59], 
           [73, 41],
@@ -86,4 +105,16 @@ QUnit.test('makeAdjMatTriangle()', function( assert ){
         [0,  0,  0,  0,  0,  0] 
     ];
     assert.deepEqual(makeAdjMatTriangle(testArray), correct, "makeAdjMatTriangle correctly makes an adjancency list for weighted digraph");
+});
+
+QUnit.test('getRightChildIndex()', function( assert ){
+    assert.equal(getRightChildIndex(0), 2);
+    assert.equal(getRightChildIndex(10), 16);
+    assert.equal(getRightChildIndex(21), 29);
+});
+
+QUnit.test('getLeftChildIndex()', function( assert ){
+    assert.equal(getLeftChildIndex(0), 1);
+    assert.equal(getLeftChildIndex(10), 15);
+    assert.equal(getRightChildIndex(21), 28);
 });
