@@ -9,17 +9,17 @@ function main(){
 
     var reader = new FileReader();
     textInput = document.getElementById("input").value;
+    document.getElementById("output").innerHTML = "";
 
     triangle = parse(textInput);
-    elapsed = new Date().getTime() - start;
 
-    document.getElementById("runningTime").innerHTML = "Running time <br />" + elapsed + " millisecond(s)";
     var triangleAdjMat = makeAdjMatTriangle(triangle);
     var vertexWeights = makeWeightArray(triangle);
-    write2DArray(triangleAdjMat);
     var dist = maxDijkstra(triangleAdjMat, vertexWeights, 0);
     var maxIndex = findIndexWithMax(dist);
-    document.getElementById("output").innerHTML = "Found max path! It is " + dist[maxIndex];
+    document.getElementById("output").innerHTML += "Found max path! It is " + dist[maxIndex];
+    elapsed = new Date().getTime() - start;
+    document.getElementById("runningTime").innerHTML = "Running time <br />" + elapsed + " millisecond(s)";
 } 
 
 function write2DArray(arr){
@@ -152,12 +152,12 @@ function maxDijkstra(adjmat, weight, start) {
     var distance = new Array(nvertices);
     var v;
 
-    for(var i = 0; i <= nvertices; i++){
+    for(var i = 0; i < nvertices; i++){
         intree[i] = false;
         distance[i] = MININT;
     }
 
-    distance[start] = 3;
+    distance[start] = weight[start];
     var u;  // Candidate vertex
     for(var c = 0; c <= nvertices; c++){
         u = maxDistance(distance, intree);
