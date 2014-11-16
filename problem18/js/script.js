@@ -2,6 +2,7 @@ var textInput;
 var line;
 var triangle;
 var done = false;
+var MAXINT = 9007199254740992;
 
 function main(){
     var start = new Date().getTime();
@@ -10,11 +11,20 @@ function main(){
     textInput = document.getElementById("input").value;
 
     triangle = parse(textInput);
-    document.getElementById("output").innerHTML = triangle;
     elapsed = new Date().getTime() - start;
 
     document.getElementById("runningTime").innerHTML = "Running time <br />" + elapsed + " millisecond(s)";
+    var triangleAdjMat = makeAdjMatTriangle(triangle);
+    write2DArray(triangleAdjMat);
+    maxDijkstra(triangleAdjMat, 0);
 } 
+
+function write2DArray(arr){
+    var html = '';
+    for (var i = 0; i < arr.length; i++)
+         html += arr[i] + "<br />";
+    document.getElementById("output").innerHTML = html;
+}
 
 function parse(input){
     var inputArray = input.split("\n"); 
@@ -39,33 +49,103 @@ function getNumNodes(array) {
     return count;
 }
 
-function getLeftChildIndex(nodeIndex){
-    return nodeIndex * 2 + 1;
+function getLeftChildIndex(nodeIndex, rowLen){
+    var firstIndexOfRow = ((rowLen - 1) * rowLen) / 2;
+    return ((rowLen * (rowLen + 1)) / 2) + (nodeIndex - firstIndexOfRow);
 }
 
-function getRightChildIndex(nodeIndex){
-    return nodeIndex * 2 + 2;
+function getRightChildIndex(nodeIndex, rowLen){
+    var firstIndexOfRow = ((rowLen - 1) * rowLen) / 2;
+    return ((rowLen * (rowLen + 1)) / 2) + (nodeIndex - firstIndexOfRow) + 1;
 }
 
+// Converts a 2D array representation of a numbered triangle into a weighted adjacency matrix.
 function makeAdjMatTriangle(tri2DArray) {
     var rows = tri2DArray.length;
     var columns = tri2DArray[rows - 1].length;
     var numNodes = getNumNodes(tri2DArray);
     var adjmat = new Array(numNodes);
-    for (var i = 0; i < numNodes; i++)
-        adjmat[i] = new Array(numNodes);
+    var r, c;
 
-    for (var r = 0; r < numNodes; r++)
-        for (var c = 0; c < numNodes; c++)
+    for (r = 0; r < numNodes; r++){
+        adjmat[r] = new Array(numNodes);
+        for (c = 0; c < numNodes; c++)
             adjmat[r][c] = 0;
-
-    for (var r = 0; r < tri2DArray.length; r++){
-        for (var c = 0; c < tri2DArray[r].length; c++){
-
-        }
     }
 
+    var rowLength = 0;
+    var firstVertexOfRow, currVertex, leftChild, rightChild;
+    for (r = 0; r < (tri2DArray.length - 1); r++){
+        rowLength++;
+        firstVertexOfRow = ((rowLength - 1) * rowLength) / 2;
+        console.log("firstVertexOfRow = " + firstVertexOfRow);
+        for (c = 0; c < rowLength; c++){
+            currVertex = firstVertexOfRow + c;
+            currVertexWeight = tri2DArray[r][c];
+            leftChild = getLeftChildIndex(currVertex, rowLength);
+            rightChild = getRightChildIndex(currVertex, rowLength);
+            adjmat[currVertex][leftChild] = currVertexWeight;
+            adjmat[currVertex][rightChild] = currVertexWeight;
+            console.log("left,right child = " + leftChild + ", " + rightChild + " | currVertex = " + currVertex);
+        }
+    }
     return adjmat;
+}
+
+// From the set of vertices not in the tree and not infinite, find the vertex with the
+// biggest distance
+function maxDistance(dist, intree)
+{
+    var max = -1;
+    var maxV = -1;
+
+    for (var v = 0; v < dist.length; v++){
+        if (intree[v] === false && max <= dist[v]){
+            max = dist[v];
+            maxV = v; 
+        }
+    }
+    return maxV;
+}
+// Maximal dijkstra may not work if there is a cycle, but since we don't have cycles then that's fine
+// Adapted from Skiena 208
+function maxDijkstra(adjmat, start) {
+    var i;          /* Counter */
+    var nvertices = adjmat.length;
+    var intree = new Array(nvertices);
+    var distance = new Array(nvertices);    // distance[i] = maximum distance from start -> i
+    var nbrs;
+    var v;
+    var w;
+    var weight;
+    var dist;
+
+    for(var i = 0; i <= nvertices; i++){
+        intree[i] = false;
+        distance[i] = -MAXINT;
+    }
+
+    distance[start] = 0;
+    intree[v] = 1;
+    var u;  // Candidate vertex
+    for(var c = 0; c < nvertices - 1; c++){
+        u = maxDistance(distance, intree);
+        intree[u] = true;
+
+        for (var v = 0; v < nvertices; v++){
+            //If
+            //1. vertex v is not in the SP tree yet
+            //2. there is an edge between u and v
+            //3. distance of u is not -MAXINT
+            //4. distance of v is less than the distance of u + weight of edge uv
+            if (!intree[v] && 
+                adjmat[u][v] && 
+                distance[u] != -MAXINT && 
+                distance[v] < distance[u] + adjmat[u][v]){
+                distance[v] = distance[u] + adjmat[u][v];
+            }
+        }
+    }
 }
 
 // ----- TESTS ------
@@ -104,17 +184,17 @@ QUnit.test('makeAdjMatTriangle()', function( assert ){
         [0,  0,  0,  0,  0,  0], 
         [0,  0,  0,  0,  0,  0] 
     ];
-    assert.deepEqual(makeAdjMatTriangle(testArray), correct, "makeAdjMatTriangle correctly makes an adjancency list for weighted digraph");
+    assert.deepEqual(makeAdjMatTriangle(testArray), correct, "makeAdjMatTriangle correctly makes an adjancency matrix for weighted digraph");
 });
 
 QUnit.test('getRightChildIndex()', function( assert ){
-    assert.equal(getRightChildIndex(0), 2);
-    assert.equal(getRightChildIndex(10), 16);
-    assert.equal(getRightChildIndex(21), 29);
+    assert.equal(getRightChildIndex(0, 1), 2);
+    assert.equal(getRightChildIndex(10, 5), 16);
+    assert.equal(getRightChildIndex(21, 7), 29);
 });
 
 QUnit.test('getLeftChildIndex()', function( assert ){
-    assert.equal(getLeftChildIndex(0), 1);
-    assert.equal(getLeftChildIndex(10), 15);
-    assert.equal(getRightChildIndex(21), 28);
+    assert.equal(getLeftChildIndex(0, 1), 1);
+    assert.equal(getLeftChildIndex(10, 5), 15);
+    assert.equal(getLeftChildIndex(21, 7), 28);
 });

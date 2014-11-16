@@ -25,7 +25,7 @@
  */
 module.exports = function(){
     var primeFactor = 0;
-    var x = 600851475143;
+    var x = 341550071728321;
     var isPrime;
     var quo;
 
